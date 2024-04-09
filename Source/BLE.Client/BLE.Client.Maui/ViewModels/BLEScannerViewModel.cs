@@ -1,9 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using Plugin.BLE;
+using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
+using Plugin.BLE.Abstractions.Exceptions;
 using Plugin.BLE.Abstractions.Extensions;
 
 namespace BLE.Client.Maui.ViewModels
@@ -28,6 +31,7 @@ namespace BLE.Client.Maui.ViewModels
                     RaisePropertyChanged(nameof(Waiting));
                     RaisePropertyChanged(nameof(ScanState));
                     RaisePropertyChanged(nameof(ToggleScanningCmdLabelText));
+                    ConnectToDeviceCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -59,6 +63,7 @@ namespace BLE.Client.Maui.ViewModels
             }
             
             ToggleScanning = new Command(ToggleScanForDevices);
+            ConnectToDeviceCommand = new RelayCommand(ConnectToDevice, CanConnectToDevice);
         }
 
         private string GetStateText()
@@ -114,6 +119,9 @@ namespace BLE.Client.Maui.ViewModels
             Adapter.ScanTimeoutElapsed += Adapter_ScanTimeoutElapsed;
             Adapter.DeviceAdvertised += OnDeviceAdvertised;
             Adapter.DeviceDiscovered += OnDeviceDiscovered;
+            // Catch disconnects
+            Adapter.DeviceConnectionLost += Adapter_DeviceConnectionLost;
+            Adapter.DeviceDisconnected += Adapter_DeviceDisconnected;
             DebugMessage("Configuring BLE... DONE");
         }
         private void OnBluetoothStateChanged(object sender, BluetoothStateChangedArgs e)
@@ -247,7 +255,84 @@ namespace BLE.Client.Maui.ViewModels
                 AddOrUpdateDevice(connectedDevice);
             }
         }
-
         #endregion Scan & Discover
+
+        #region (Dis)Connecting
+        private BLEDeviceViewModel _SelectedBLEDevice;
+        public BLEDeviceViewModel SelectedBLEDevice
+        {
+            get => _SelectedBLEDevice;
+            set
+            {
+                if (value != _SelectedBLEDevice)
+                {
+                    _SelectedBLEDevice = value;
+                    ConnectToDeviceCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+
+        public RelayCommand ConnectToDeviceCommand { get; init; }
+        private bool _connectingToDevice = false;
+        private bool CanConnectToDevice()
+        {
+            return !IsScanning && !_connectingToDevice 
+                && (SelectedBLEDevice != null) && (SelectedBLEDevice.State != DeviceState.Connected);
+        }
+        private async void ConnectToDevice()
+        {
+            _connectingToDevice = true;
+            ConnectToDeviceCommand.NotifyCanExecuteChanged();
+            IDevice connectedDevice = null;
+
+            try
+            {
+                DebugMessage($"Connecting to {_SelectedBLEDevice}");
+                connectedDevice = await Adapter.ConnectToKnownDeviceAsync(_SelectedBLEDevice.DeviceId, new ConnectParameters(),
+                    new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
+            }
+            catch (DeviceConnectionException dce)
+            {
+                DebugMessage($"Failed to connect: {dce.Message}");
+            }
+            catch (Exception e)
+            {
+                DebugMessage(e.ToString());
+            }
+
+            if (connectedDevice != null)
+            {
+                DebugMessage("Connection successfull");
+                SelectedBLEDevice.State = DeviceState.Connected;
+                
+                await Shell.Current.GoToAsync("//DeviceInfo", new ShellNavigationQueryParameters {
+                    { nameof(BLEDeviceDetailedViewModel), new BLEDeviceDetailedViewModel(connectedDevice) }
+                });
+            }
+            _connectingToDevice = false;
+            ConnectToDeviceCommand.NotifyCanExecuteChanged();
+        }
+
+        private void Adapter_DeviceConnectionLost(object sender, DeviceErrorEventArgs e)
+        {
+            HandleDisconnectedDevice(e.Device);
+        }
+
+        private void Adapter_DeviceDisconnected(object sender, DeviceEventArgs e)
+        {
+            HandleDisconnectedDevice(e.Device);
+        }
+        private void HandleDisconnectedDevice(IDevice device)
+        {
+            if (SelectedBLEDevice.DeviceId == device.Id)
+            {
+                App.Logger.AddMessage("Selected device no longer connected");
+                MainThread.BeginInvokeOnMainThread(() => {
+                    SelectedBLEDevice.State = DeviceState.Disconnected;
+                    ConnectToDeviceCommand.NotifyCanExecuteChanged();
+                });
+            }
+        }
+        #endregion (Dis)Connecting
     }
 }

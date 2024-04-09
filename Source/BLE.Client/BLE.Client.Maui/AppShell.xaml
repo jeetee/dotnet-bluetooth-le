@@ -7,12 +7,21 @@
     Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
-        <ShellContent Title="BLE Scanner"
+        <ShellContent Title="Scanner"
             ContentTemplate="{DataTemplate local:BLEScanner}"
             Route="BLEScanner" />
             
         <ShellContent Title="Log"
             ContentTemplate="{DataTemplate local:LogViewer}"
             Route="LogViewer" />
+
+        <Tab Title="Device">
+            <ShellContent Title="Info"
+                ContentTemplate="{DataTemplate local:DeviceInfo}"
+                Route="DeviceInfo" />
+            <ShellContent Title="Characteristics"
+                ContentTemplate="{DataTemplate local:DeviceCharacteristics}"
+                Route="DeviceCharacteristics" />
+        </Tab>
     </TabBar>
 </Shell>
