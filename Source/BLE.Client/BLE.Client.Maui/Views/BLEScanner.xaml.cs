@@ -9,7 +9,5 @@ public partial class BLEScanner : ContentPage
         InitializeComponent();
         _viewModel = new();
         BindingContext = _viewModel;
-
     }
-
 }
