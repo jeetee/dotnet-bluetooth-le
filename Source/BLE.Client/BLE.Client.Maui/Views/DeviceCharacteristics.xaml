@@ -2,15 +2,65 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BLE.Client.Maui.ViewModels"
+             xmlns:bleIf="clr-namespace:Plugin.BLE.Abstractions.Contracts;assembly=Plugin.BLE"
              x:DataType="vm:BLEDeviceDetailedViewModel"
              x:Class="BLE.Client.Maui.Views.DeviceCharacteristics"
              Title="Device">
-	<Grid Margin="5" RowSpacing="8" RowDefinitions="auto, *, auto">
-		<Label Grid.Row="0" Text="Characteristics"/>
-		<VerticalStackLayout Grid.Row="1">
-			<Label Text="{Binding Name}"/>
-			<Label Text="{Binding MacAddress}"/>
-		</VerticalStackLayout>
-        <Button Grid.Row="2" Text="Disconnect" FontSize="32" IsEnabled="{Binding Connected}" Command="{Binding DisconnectCommand}"/>
+    <Grid Margin="5" RowSpacing="8" RowDefinitions="auto, *, 2*, auto">
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold"/>
+            <Label Text="{Binding MacAddress}" FontSize="16" FontAttributes="Italic"/>
+        </VerticalStackLayout>
+        <CollectionView Grid.Row="1" x:Name="ServiceLstView" ItemsSource="{Binding Characteristics}" SelectionMode="Single"
+            Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
+            <CollectionView.Resources>
+                <Style TargetType="VerticalStackLayout">
+                    <Setter Property="VisualStateManager.VisualStateGroups">
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="Background" Value="{AppThemeBinding Light=LightSkyBlue, Dark=DarkBlue}"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </Setter>
+                </Style>
+            </CollectionView.Resources>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Null}">
+                    <VerticalStackLayout Padding="2,5">
+                        <Label Text="{Binding Key.Name}"/>
+                        <Label Text="{Binding Key.Id}" Margin="10,0,0,5"/>
+                        <Border />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <CollectionView Grid.Row="2" BindingContext="{Binding Source={x:Reference ServiceLstView}, Path=SelectedItem}"
+            x:DataType="{x:Null}" ItemsSource="{Binding Value}" SelectionMode="None"
+            Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Type bleIf:ICharacteristic}">
+                    <VerticalStackLayout Padding="2,5">
+                        <Label Text="{Binding Id}"/>
+                        <Grid ColumnDefinitions="auto,*" ColumnSpacing="4" Margin="10,0" RowDefinitions="*,*,*,*,*">
+                            <Label Grid.Row="0" Grid.ColumnSpan="2" Text="{Binding Name}"/>
+                            <Label Grid.Row="1" Text="CanRead"/>
+                            <Label Grid.Row="1" Grid.Column="2" Text="{Binding CanRead}"/>
+                            <Label Grid.Row="2" Text="CanWrite"/>
+                            <Label Grid.Row="2" Grid.Column="2" Text="{Binding CanWrite}"/>
+                            <Label Grid.Row="3" Text="CanUpdate"/>
+                            <Label Grid.Row="3" Grid.Column="2" Text="{Binding CanUpdate}"/>
+                            <Label Grid.Row="4" Text="Properties"/>
+                            <Label Grid.Row="4" Grid.Column="2" Text="{Binding Properties}"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button Grid.Row="3" Text="Disconnect" FontSize="32" IsEnabled="{Binding Connected}" Command="{Binding DisconnectCommand}"/>
     </Grid>
 </ContentPage>
