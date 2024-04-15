@@ -31,8 +31,8 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
     }
     public int ServiceCount => _Services?.Count ?? 0;
 
-    private Dictionary<IService, IReadOnlyList<ICharacteristic>> _Characteristics;
-    public ReadOnlyDictionary<IService, IReadOnlyList<ICharacteristic>> Characteristics { get; private set; } = null;
+    private Dictionary<IService, IReadOnlyList<BLECharacteristicViewModel>> _Characteristics;
+    public ReadOnlyDictionary<IService, IReadOnlyList<BLECharacteristicViewModel>> Characteristics { get; private set; } = null;
 
     public BLEDeviceDetailedViewModel(IDevice device)
     {
@@ -46,6 +46,8 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
 
         DiscoverServicesCommand = new RelayCommand(DiscoverServices, CanDiscoverServices);
         DisconnectCommand = new Command(Disconnect);
+
+        ReadCharacteristicValueCommand = new Command(ReadCharacteristicValue);
     }
 
     #region Services
@@ -76,7 +78,8 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
                 foreach(var service in Services)
                 {
                     App.Logger.AddMessage($"Retrieving characteristics for service {service.Id}");
-                    _Characteristics[service] = await service.GetCharacteristicsAsync();
+                    var chars = await service.GetCharacteristicsAsync();
+                    _Characteristics[service] = chars.Select(c => new BLECharacteristicViewModel(c)).ToList().AsReadOnly();
                     App.Logger.AddMessage($"Received {_Characteristics[service].Count} characteristics");
                 }
                 MainThread.BeginInvokeOnMainThread(() =>
@@ -96,6 +99,38 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
         }
     }
     #endregion Services
+
+    #region Characteristics
+    public ICommand ReadCharacteristicValueCommand { get; init; }
+    private async void ReadCharacteristicValue(object o)
+    {
+        if (o is not null)
+        {
+            ICharacteristic characteristic = (ICharacteristic)o;
+            try
+            {
+                //characteristic.ValueUpdated += Characteristic_ValueUpdated;
+                App.Logger.AddMessage($"Reading Characteristic {characteristic.Id}...");
+                IReadOnlyList<IDescriptor> descriptors = await characteristic.GetDescriptorsAsync();
+                var value = await characteristic.ReadAsync();
+                //characteristic.ValueUpdated -= Characteristic_ValueUpdated;
+                App.Logger.AddMessage($"Received value:\n{value}");
+            }
+            catch (Exception e)
+            {
+                App.Logger.AddMessage($"Reading characteristic failed: {e}");
+            }
+            App.Logger.AddMessage($"Done Reading Characteristic {characteristic.Id}.");
+        }
+    }
+
+    private void Characteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(() => {
+            App.Logger.AddMessage($">> ValueUpdated for {e.Characteristic.Id}");
+        });
+    }
+    #endregion Characteristics
 
     #region Disconnect
     private void Adapter_DeviceConnectionLost(object sender, DeviceErrorEventArgs e)

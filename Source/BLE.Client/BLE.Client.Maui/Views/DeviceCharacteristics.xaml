@@ -5,6 +5,7 @@
              xmlns:bleIf="clr-namespace:Plugin.BLE.Abstractions.Contracts;assembly=Plugin.BLE"
              x:DataType="vm:BLEDeviceDetailedViewModel"
              x:Class="BLE.Client.Maui.Views.DeviceCharacteristics"
+             xmlns:local="clr-namespace:BLE.Client.Maui.Views"
              Title="Device">
     <Grid Margin="5" RowSpacing="8" RowDefinitions="auto, *, 2*, auto">
         <VerticalStackLayout Grid.Row="0" Spacing="5">
@@ -43,7 +44,7 @@
             x:DataType="{x:Null}" ItemsSource="{Binding Value}" SelectionMode="None"
             Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="{x:Type bleIf:ICharacteristic}">
+                <DataTemplate x:DataType="{x:Type vm:BLECharacteristicViewModel}">
                     <VerticalStackLayout Padding="2,5">
                         <Label Text="{Binding Id}"/>
                         <Grid ColumnDefinitions="auto,*" ColumnSpacing="4" Margin="10,0" RowDefinitions="*,*,*,*,*">
@@ -57,6 +58,31 @@
                             <Label Grid.Row="4" Text="Properties"/>
                             <Label Grid.Row="4" Grid.Column="2" Text="{Binding Properties}"/>
                         </Grid>
+                        <Grid ColumnDefinitions="*,auto" ColumnSpacing="4">
+                            <Label Text="Value" VerticalTextAlignment="Center"/>
+                            <HorizontalStackLayout Grid.Column="1" Spacing="4">
+                                <Button Text="R" FontSize="24" IsEnabled="{Binding CanRead}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:DeviceCharacteristics}}, Path=BindingContext.ReadCharacteristicValueCommand}"
+                                        CommandParameter="{Binding .}"/>
+                                <Button Text="W" FontSize="24" IsEnabled="{Binding CanWrite}"/>
+                                <HorizontalStackLayout Margin="4,0,0,0">
+                                    <Label Text="U" FontSize="24" VerticalTextAlignment="Center" Margin="0">
+                                        <Label.Style>
+                                            <Style TargetType="{x:Type Label}">
+                                                <Setter Property="TextColor" Value="{StaticResource Gray600}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger TargetType="{x:Type Label}" Binding="{Binding CanUpdate}" Value="True">
+                                                        <Setter Property="TextColor" Value="{StaticResource White}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Label.Style>
+                                    </Label>
+                                    <CheckBox IsEnabled="{Binding CanUpdate}" Margin="0" />
+                                </HorizontalStackLayout>
+                            </HorizontalStackLayout>
+                        </Grid>
+                        <Label Text="{Binding StringValue}"/>
                     </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
