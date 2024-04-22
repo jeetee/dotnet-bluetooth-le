@@ -7,7 +7,7 @@
              x:Class="BLE.Client.Maui.Views.DeviceCharacteristics"
              xmlns:local="clr-namespace:BLE.Client.Maui.Views"
              Title="Device">
-    <Grid Margin="5" RowSpacing="8" RowDefinitions="auto, *, 2*, auto">
+    <Grid Margin="5" RowSpacing="8" RowDefinitions="auto, *, 3*, auto">
         <VerticalStackLayout Grid.Row="0" Spacing="5">
             <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold"/>
             <Label Text="{Binding MacAddress}" FontSize="16" FontAttributes="Italic"/>
@@ -31,17 +31,16 @@
                 </Style>
             </CollectionView.Resources>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="{x:Null}">
-                    <VerticalStackLayout Padding="2,5">
-                        <Label Text="{Binding Key.Name}"/>
-                        <Label Text="{Binding Key.Id}" Margin="10,0,0,5"/>
-                        <Border />
+                <DataTemplate x:DataType="{x:Type vm:CharacteristicsPerService}">
+                    <VerticalStackLayout Padding="5" Spacing="2">
+                        <Label Text="{Binding Service.Name}"/>
+                        <Label Text="{Binding Service.Id}" FontAttributes="Italic"/>
                     </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
         <CollectionView Grid.Row="2" BindingContext="{Binding Source={x:Reference ServiceLstView}, Path=SelectedItem}"
-            x:DataType="{x:Null}" ItemsSource="{Binding Value}" SelectionMode="None"
+            x:DataType="{x:Type vm:CharacteristicsPerService}" ItemsSource="{Binding Characteristics}" SelectionMode="None"
             Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="{x:Type vm:BLECharacteristicViewModel}">

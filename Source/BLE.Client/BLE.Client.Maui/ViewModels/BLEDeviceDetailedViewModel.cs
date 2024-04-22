@@ -3,10 +3,15 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
-using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace BLE.Client.Maui.ViewModels;
+
+public class CharacteristicsPerService
+{
+    public IService Service { get; init; }
+    public IReadOnlyList<BLECharacteristicViewModel> Characteristics { get; init; }
+}
 
 public class BLEDeviceDetailedViewModel : BaseViewModel
 {
@@ -31,8 +36,8 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
     }
     public int ServiceCount => _Services?.Count ?? 0;
 
-    private Dictionary<IService, IReadOnlyList<BLECharacteristicViewModel>> _Characteristics;
-    public ReadOnlyDictionary<IService, IReadOnlyList<BLECharacteristicViewModel>> Characteristics { get; private set; } = null;
+    private List<CharacteristicsPerService> _Characteristics;
+    public IReadOnlyList<CharacteristicsPerService> Characteristics { get; private set; } = null;
 
     public BLEDeviceDetailedViewModel(IDevice device)
     {
@@ -79,12 +84,15 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
                 {
                     App.Logger.AddMessage($"Retrieving characteristics for service {service.Id}");
                     var chars = await service.GetCharacteristicsAsync();
-                    _Characteristics[service] = chars.Select(c => new BLECharacteristicViewModel(c)).ToList().AsReadOnly();
-                    App.Logger.AddMessage($"Received {_Characteristics[service].Count} characteristics");
+                    _Characteristics.Add(new() {
+                        Service = service,
+                        Characteristics = chars.Select(c => new BLECharacteristicViewModel(c)).ToList().AsReadOnly()
+                    });
+                    App.Logger.AddMessage($"Received {chars.Count} characteristics");
                 }
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    Characteristics = new(_Characteristics);
+                    Characteristics = _Characteristics.AsReadOnly();
                     RaisePropertyChanged(nameof(Characteristics));
                 });
             }
@@ -114,7 +122,7 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
                 IReadOnlyList<IDescriptor> descriptors = await characteristic.GetDescriptorsAsync();
                 var value = await characteristic.ReadAsync();
                 //characteristic.ValueUpdated -= Characteristic_ValueUpdated;
-                App.Logger.AddMessage($"Received value:\n{value}");
+                App.Logger.AddMessage($"Received value:\n{value.data.Length} bytes");
             }
             catch (Exception e)
             {
