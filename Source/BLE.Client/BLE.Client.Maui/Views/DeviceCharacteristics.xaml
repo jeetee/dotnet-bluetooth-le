@@ -41,47 +41,42 @@
         </CollectionView>
         <CollectionView Grid.Row="2" BindingContext="{Binding Source={x:Reference ServiceLstView}, Path=SelectedItem}"
             x:DataType="{x:Type vm:CharacteristicsPerService}" ItemsSource="{Binding Characteristics}" SelectionMode="None"
-            Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
+                        Background="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="{x:Type vm:BLECharacteristicViewModel}">
-                    <VerticalStackLayout Padding="2,5">
-                        <Label Text="{Binding Id}"/>
-                        <Grid ColumnDefinitions="auto,*" ColumnSpacing="4" Margin="10,0" RowDefinitions="*,*,*,*,*">
-                            <Label Grid.Row="0" Grid.ColumnSpan="2" Text="{Binding Name}"/>
-                            <Label Grid.Row="1" Text="CanRead"/>
-                            <Label Grid.Row="1" Grid.Column="2" Text="{Binding CanRead}"/>
-                            <Label Grid.Row="2" Text="CanWrite"/>
-                            <Label Grid.Row="2" Grid.Column="2" Text="{Binding CanWrite}"/>
-                            <Label Grid.Row="3" Text="CanUpdate"/>
-                            <Label Grid.Row="3" Grid.Column="2" Text="{Binding CanUpdate}"/>
-                            <Label Grid.Row="4" Text="Properties"/>
-                            <Label Grid.Row="4" Grid.Column="2" Text="{Binding Properties}"/>
-                        </Grid>
-                        <Grid ColumnDefinitions="*,auto" ColumnSpacing="4">
-                            <Label Text="Value" VerticalTextAlignment="Center"/>
-                            <HorizontalStackLayout Grid.Column="1" Spacing="4">
-                                <Button Text="R" FontSize="24" IsEnabled="{Binding CanRead}"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:DeviceCharacteristics}}, Path=BindingContext.ReadCharacteristicValueCommand}"
-                                        CommandParameter="{Binding .}"/>
-                                <Button Text="W" FontSize="24" IsEnabled="{Binding CanWrite}"/>
-                                <HorizontalStackLayout Margin="4,0,0,0">
-                                    <Label Text="U" FontSize="24" VerticalTextAlignment="Center" Margin="0">
-                                        <Label.Style>
-                                            <Style TargetType="{x:Type Label}">
-                                                <Setter Property="TextColor" Value="{StaticResource Gray600}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger TargetType="{x:Type Label}" Binding="{Binding CanUpdate}" Value="True">
-                                                        <Setter Property="TextColor" Value="{StaticResource White}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Label.Style>
-                                    </Label>
-                                    <CheckBox IsEnabled="{Binding CanUpdate}" Margin="0" />
-                                </HorizontalStackLayout>
-                            </HorizontalStackLayout>
-                        </Grid>
-                        <Label Text="{Binding StringValue}"/>
+                    <VerticalStackLayout>
+                        <Frame Margin="5" Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding Name}" FontAttributes="Bold"/>
+                                <Label Text="{Binding Id}" FontAttributes="Italic"/>
+                                <Grid ColumnDefinitions="auto,*" ColumnSpacing="4">
+                                    <Label Grid.Column="0" Text="Properties:"/>
+                                    <Label Grid.Column="1" Text="{Binding Properties}"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,auto" ColumnSpacing="4">
+                                    <Label Text="Value:" VerticalTextAlignment="Center"/>
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="4">
+                                        <Button Text="R" FontSize="24" IsEnabled="{Binding CanRead}" WidthRequest="32" HeightRequest="32"
+                                                Padding="0"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:DeviceCharacteristics}}, Path=BindingContext.ReadCharacteristicValueCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                        <Button Text="W" FontSize="24" IsEnabled="{Binding CanWrite}" WidthRequest="32" HeightRequest="32"
+                                                Padding="0"/>
+                                        <HorizontalStackLayout Margin="4,0,0,0">
+                                            <Label Text="U" FontSize="24" VerticalTextAlignment="Center" Margin="0" IsEnabled="{Binding CanUpdate}"/>
+                                            <CheckBox IsEnabled="{Binding CanUpdate}" Margin="0" />
+                                        </HorizontalStackLayout>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                                <Grid ColumnDefinitions="auto,*" RowDefinitions="auto,auto,auto" ColumnSpacing="4">
+                                    <Label Grid.Column="0" Text="ASCII:"/>
+                                    <Label Grid.Column="1" Text="{Binding StringValue}"/>
+                                    <Label Grid.Column="0" Grid.Row="1" Text="Hex:"/>
+                                    <Label Grid.Column="1" Grid.Row="1" Text="{Binding ValueByteCount, StringFormat='{0} bytes'}"/>
+                                    <Label Grid.ColumnSpan="2" Grid.Row="2" Text="{Binding ValueAsHex}"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Frame>
                     </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
