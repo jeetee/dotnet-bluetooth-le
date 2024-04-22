@@ -18,6 +18,14 @@ public class BLECharacteristicViewModel : BaseViewModel, ICharacteristic
     public string Uuid => _characteristic.Uuid;
     public string Name => _characteristic.Name;
     public byte[] Value => _characteristic.Value;
+    public int ValueByteCount => _characteristic.Value.Length;
+    public string ValueAsHex
+    {
+        get
+        {
+            return BitConverter.ToString(Value).Replace('-', ' ');
+        }
+    }
     public string StringValue => _characteristic.StringValue;
     public CharacteristicPropertyType Properties => _characteristic.Properties;
     public CharacteristicWriteType WriteType
@@ -56,6 +64,8 @@ public class BLECharacteristicViewModel : BaseViewModel, ICharacteristic
         if (Value != oldValue)
         {
             RaisePropertyChanged(nameof(Value));
+            RaisePropertyChanged(nameof(ValueByteCount));
+            RaisePropertyChanged(nameof(ValueAsHex));
             RaisePropertyChanged(nameof(StringValue));
         }
         return readresult;
