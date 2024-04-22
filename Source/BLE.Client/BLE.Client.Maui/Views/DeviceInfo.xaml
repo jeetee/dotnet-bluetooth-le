@@ -7,34 +7,36 @@
              x:Class="BLE.Client.Maui.Views.DeviceInfo"
              Title="Device">
     <Grid Margin="5" RowSpacing="8" RowDefinitions="*, auto">
-        <VerticalStackLayout Grid.Row="0" Spacing="5">
-            <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold"/>
-            <Label Text="{Binding MacAddress}" FontSize="16" FontAttributes="Italic"/>
-            <CollectionView ItemsSource="{Binding Adverts}" SelectionMode="None"
-                 Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Label Text="{Binding .}"/>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-            <HorizontalStackLayout>
-                <Label Text="# Services:" Margin="0,0,4,0"/>
-                <Label Text="{Binding ServiceCount}"/>
-            </HorizontalStackLayout>
-            <Button Text="Discover Services" Command="{Binding DiscoverServicesCommand}"/>
-            <CollectionView ItemsSource="{Binding Services}" SelectionMode="None"
+        <Grid Grid.Row="0" RowSpacing="5" RowDefinitions="auto,*">
+            <VerticalStackLayout Grid.Row="0" Spacing="5">
+                <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold"/>
+                <Label Text="{Binding MacAddress}" FontSize="16" FontAttributes="Italic"/>
+                <CollectionView ItemsSource="{Binding Adverts}" SelectionMode="None"
+                     Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding .}"/>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <HorizontalStackLayout>
+                    <Label Text="# Services:" Margin="0,0,4,0"/>
+                    <Label Text="{Binding ServiceCount}"/>
+                </HorizontalStackLayout>
+                <Button Text="Discover Services" Command="{Binding DiscoverServicesCommand}"/>
+            </VerticalStackLayout>
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Services}" SelectionMode="None"
                 Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="{x:Type bleIf:IService}">
-                        <VerticalStackLayout>
+                        <VerticalStackLayout Padding="5" Spacing="2">
                             <Label Text="{Binding Name}"/>
-                            <Label Text="{Binding Id}" Margin="10,0,0,0"/>
+                            <Label Text="{Binding Id}" FontAttributes="Italic"/>
                         </VerticalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </VerticalStackLayout>
+        </Grid>
         <Button Grid.Row="1" Text="Disconnect" FontSize="32" IsEnabled="{Binding Connected}" Command="{Binding DisconnectCommand}"/>
     </Grid>
 </ContentPage>
