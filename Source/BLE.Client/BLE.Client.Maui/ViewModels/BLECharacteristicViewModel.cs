@@ -18,14 +18,6 @@ public class BLECharacteristicViewModel : BaseViewModel, ICharacteristic
     public string Uuid => _characteristic.Uuid;
     public string Name => _characteristic.Name;
     public byte[] Value => _characteristic.Value;
-    public int ValueByteCount => _characteristic.Value.Length;
-    public string ValueAsHex
-    {
-        get
-        {
-            return BitConverter.ToString(Value).Replace('-', ' ');
-        }
-    }
     public string StringValue => _characteristic.StringValue;
     public CharacteristicPropertyType Properties => _characteristic.Properties;
     public CharacteristicWriteType WriteType
@@ -46,7 +38,29 @@ public class BLECharacteristicViewModel : BaseViewModel, ICharacteristic
     public IService Service => _characteristic.Service;
     #endregion ICharacteristic - transient properties
 
-    public event EventHandler<CharacteristicUpdatedEventArgs> ValueUpdated;
+    #region Derived Properties
+    public int ValueByteCount => _characteristic.Value.Length;
+    public string ValueAsHex
+    {
+        get
+        {
+            return BitConverter.ToString(Value).Replace('-', ' ');
+        }
+    }
+    #endregion Derived Properties
+
+    public event EventHandler<CharacteristicUpdatedEventArgs> ValueUpdated
+    {
+        add
+        {
+            _characteristic.ValueUpdated += value;
+        }
+
+        remove
+        {
+            _characteristic.ValueUpdated -= value;
+        }
+    }
 
     #region ICharacteristic - transient calls
     public Task<IDescriptor> GetDescriptorAsync(Guid id, CancellationToken cancellationToken = default)
@@ -63,21 +77,32 @@ public class BLECharacteristicViewModel : BaseViewModel, ICharacteristic
         var readresult = await _characteristic.ReadAsync(cancellationToken);
         if (Value != oldValue)
         {
-            RaisePropertyChanged(nameof(Value));
-            RaisePropertyChanged(nameof(ValueByteCount));
-            RaisePropertyChanged(nameof(ValueAsHex));
-            RaisePropertyChanged(nameof(StringValue));
+            Characteristic_ValueUpdated(null, null);
         }
         return readresult;
     }
     public Task StartUpdatesAsync(CancellationToken cancellationToken = default)
     {
+        _characteristic.ValueUpdated += Characteristic_ValueUpdated;
         return _characteristic.StartUpdatesAsync(cancellationToken);
     }
     public Task StopUpdatesAsync(CancellationToken cancellationToken = default)
     {
+        _characteristic.ValueUpdated -= Characteristic_ValueUpdated;
         return _characteristic.StopUpdatesAsync(cancellationToken);
     }
+    private void Characteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
+    {
+        if (sender is not null)
+        {
+            App.Logger.AddMessage($"Value Updated for {Id}:\n{ValueAsHex}");
+        }
+        RaisePropertyChanged(nameof(Value));
+        RaisePropertyChanged(nameof(ValueByteCount));
+        RaisePropertyChanged(nameof(ValueAsHex));
+        RaisePropertyChanged(nameof(StringValue));
+    }
+
     public Task<int> WriteAsync(byte[] data, CancellationToken cancellationToken = default)
     {
         return _characteristic.WriteAsync(data, cancellationToken);

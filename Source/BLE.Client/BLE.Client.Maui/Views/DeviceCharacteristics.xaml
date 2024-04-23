@@ -64,7 +64,7 @@
                                                 Padding="0"/>
                                         <HorizontalStackLayout Margin="4,0,0,0">
                                             <Label Text="U" FontSize="24" VerticalTextAlignment="Center" Margin="0" IsEnabled="{Binding CanUpdate}"/>
-                                            <CheckBox IsEnabled="{Binding CanUpdate}" Margin="0" />
+                                            <CheckBox IsEnabled="{Binding CanUpdate}" CheckedChanged="SubscribeToCharacteristicUpdates_CheckedChanged" Margin="0" />
                                         </HorizontalStackLayout>
                                     </HorizontalStackLayout>
                                 </Grid>
