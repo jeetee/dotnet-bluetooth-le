@@ -39,6 +39,8 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
     private List<CharacteristicsPerService> _Characteristics;
     public IReadOnlyList<CharacteristicsPerService> Characteristics { get; private set; } = null;
 
+    public CharacteristicsPerService SelectedCharacteristic { get; set; } = null;
+
     public BLEDeviceDetailedViewModel(IDevice device)
     {
         _device = device;
@@ -94,6 +96,8 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
                 {
                     Characteristics = _Characteristics.AsReadOnly();
                     RaisePropertyChanged(nameof(Characteristics));
+                    SelectedCharacteristic = null;
+                    RaisePropertyChanged(nameof(SelectedCharacteristic));
                 });
             }
             catch (Exception e)
@@ -155,9 +159,16 @@ public class BLEDeviceDetailedViewModel : BaseViewModel
 
     private void HandleDisconnectedDevice(IDevice _)
     {
+        _Characteristics = [];
         MainThread.BeginInvokeOnMainThread(() =>
         {
             RaisePropertyChanged(nameof(Connected));
+
+            Characteristics = _Characteristics.AsReadOnly();
+            RaisePropertyChanged(nameof(Characteristics));
+            SelectedCharacteristic = null;
+            RaisePropertyChanged(nameof(SelectedCharacteristic));
+
             DiscoverServicesCommand.NotifyCanExecuteChanged();
         });
     }

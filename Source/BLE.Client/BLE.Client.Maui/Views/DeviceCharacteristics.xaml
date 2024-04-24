@@ -12,7 +12,7 @@
             <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold"/>
             <Label Text="{Binding MacAddress}" FontSize="16" FontAttributes="Italic"/>
         </VerticalStackLayout>
-        <CollectionView Grid.Row="1" x:Name="ServiceLstView" ItemsSource="{Binding Characteristics}" SelectionMode="Single"
+        <CollectionView Grid.Row="1" x:Name="ServiceLstView" ItemsSource="{Binding Characteristics}" SelectionMode="Single" SelectedItem="{Binding SelectedCharacteristic}"
             Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
             <CollectionView.Resources>
                 <Style TargetType="VerticalStackLayout">
